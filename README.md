@@ -33,7 +33,7 @@ Puzzle pieces need to start in their correct orientation - Might change this lat
 ## Documentation
  - [Process Notes](https://docs.google.com/document/d/1dFlcskbwAm6e1XdTNDeyerxvmVqD_4IM4_7pSn7M_Hk/edit?usp=sharing)
     - Used for jotting down notes about things that were tried, how they worked/didn't work, and keeping track of the process
- - [Final Report](https://www.google.com/) (Incomplete)
+ - [Final Report](Documentation/LaTeX/Template.pdf) (Incomplete)
  
 ## Relevant Research Papers
  - [Using Computer Vision to Solve Jigsaw Puzzles](https://web.stanford.edu/class/cs231a/prev_projects_2016/computer-vision-solve__1_.pdf)
