@@ -4,6 +4,9 @@ CSSE463 Image Recognition Project - Rose-Hulman Institue of Technology
 ## Objective
 Solving Puzzles by hand can take a very long time. Our overarching goal is simple; we want to solve puzzles. The puzzles that we attempt to solve will be standard jigsaw puzzles. The stretch goal for this project is to be able to take a picture of a puzzle, partially complete or not, and present the user with a mapping of pieces in their image to where the piece belongs in the completed puzzle. 
 
+## Images
+A working set of images can be found at this drive: https://drive.google.com/drive/folders/12BzvU03my8N7xM_6qpPE8bCobpu-8FAE 
+
 ## Constraints
 Standard JigSaw puzzle pieces
 Using largely edge features - May use colors at edges to break possible connection ties
