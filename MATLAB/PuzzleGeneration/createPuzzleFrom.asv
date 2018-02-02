@@ -46,11 +46,11 @@ for i = 1:numRows
         image(find(threeDmask==1)) = 255;
         
         %imtool(pieceImage)
-        %props = regionprops3(threeDmask, "SubarrayIdx");
-        %disp(props);
-        %newPieceImage = threeDmasks(props);
-        %newPieceImage = newPieceImage + pieceImage(min(pieceRows):max(pieceRows), min(pieceCols):max(pieceCols));
-        imtool(pieceImage);
+        props = regionprops3(threeDmask, "SubarrayIdx");
+        disp(props);
+        newPieceImage = threeDmask(
+        newPieceImage = newPieceImage + pieceImage(min(pieceRows):max(pieceRows), min(pieceCols):max(pieceCols));
+        %imtool(newPieceImage);
     end
 end
 
