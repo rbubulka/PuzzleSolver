@@ -33,31 +33,14 @@ function [] = classifyPieceEdges(singlePieceMask)
         precedingIdx = wrapIndex(j-stepSize, numPerimPts);
         currIdx = j;
         laterIdx = wrapIndex(j + stepSize, numPerimPts);
-        prevX = perimCoords(precedingIdx, 1);
-        prevY = perimCoords(precedingIdx, 2);
-        currX = perimCoords(currIdx, 1);
-        currY = perimCoords(currIdx, 2);
-        futureX = perimCoords(laterIdx, 1);
-        futureY = perimCoords(laterIdx, 2);
+        prevPt = perimCoords(precedingIdx, :);
+        currPt = perimCoords(currIdx, :);
+        futurePt = perimCoords(laterIdx, :);
         
-        prevVectorX = currX - prevX;
-        prevVectorY = currY - prevY;
-        prevVectorAngle = atan2(prevVectorY, prevVectorX);
-        
-        futureVectorX = futureX - currX;
-        futureVectorY = futureY - currY;
-        futureVectorAngle = atan2(futureVectorY, futureVectorX);
-        
-        angleChange = radtodeg(futureVectorAngle - prevVectorAngle);
-        if(angleChange > 180)
-           angleChange = 360 - angleChange; 
-        elseif (angleChange < -180)
-           angleChange = 360 + angleChange;
-        end
-        curvature(j) = angleChange;
+        curvature(j) = computeChangeInVectorDirection(prevPt, currPt, futurePt);
         
         % Find distnace from perimiter point to convex hull
-        allDistsToHull = sqrt((convexHullPerim(:,1) - currX).^2 + (convexHullPerim(:,2) - currY).^2);
+        allDistsToHull = sqrt((convexHullPerim(:,1) - currPt(1)).^2 + (convexHullPerim(:,2) - currPt(2)).^2);
         distToConvexHull(j) = min(allDistsToHull);
     end
     curvatureThresh = 30;
@@ -79,6 +62,6 @@ function [] = classifyPieceEdges(singlePieceMask)
 %     plot(perimCoords(closeToHullIdx, 2), perimCoords(closeToHullIdx, 1), 'gs');
     
     
-    imtool(label2rgb(outdentRegions, @jet, 'k'));
+%     imtool(label2rgb(outdentRegions, @jet, 'k'));
 end
 

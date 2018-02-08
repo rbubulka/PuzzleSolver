@@ -80,26 +80,15 @@ function [indentRegions] = findIndents(singlePieceMask, perimCoords, curvedIdx, 
         % Eliminate any potential indents whose perimeter changes direction
         % immediately after the indent relative to the perimeter before the
         % indent (eliminates regions near outdents)        
-        indentStartX = perimCoords(firstIndentPtIdx, 1);
-        indentStartY = perimCoords(firstIndentPtIdx, 2);
-        indentStartPt = [indentStartX, indentStartY];
+        indentStartPt = perimCoords(firstIndentPtIdx, :);
 
         middleIdx = round(size(allIndentPtIdx,1) / 2);
         middleIndentIdx = allIndentPtIdx(middleIdx);
-        middleIndentX = perimCoords(middleIndentIdx, 1);
-        middleIndentY = perimCoords(middleIndentIdx, 2);
-        middleIndentPt = [middleIndentX, middleIndentY];        
+        middleIndentPt = perimCoords(middleIndentIdx, :);       
         
-        indentEndX = perimCoords(lastIndentPtIdx, 1);
-        indentEndY = perimCoords(lastIndentPtIdx, 2);
-        indentEndPt = [indentEndX, indentEndY];    
+        indentEndPt = perimCoords(lastIndentPtIdx, :); 
         
         angleChange = computeAngleFrom3Points(indentStartPt, middleIndentPt, indentEndPt);
-        if(angleChange > 180)
-           angleChange = 360 - angleChange; 
-        elseif (angleChange < -180)
-           angleChange = 360 + angleChange;
-        end
         
 %                 plot(perimCoords(firstIndentPtIdx, 2), perimCoords(firstIndentPtIdx, 1), 'gs');
 %         plot(perimCoords(beforeIndentStartIdx, 2), perimCoords(beforeIndentStartIdx, 1), 'ro');
@@ -108,7 +97,6 @@ function [indentRegions] = findIndents(singlePieceMask, perimCoords, curvedIdx, 
 %         plot(perimCoords(finalInflPtIdx, 2), perimCoords(finalInflPtIdx, 1), 'rs');
 %         plot(perimCoords(afterIndentEndIdx, 2), perimCoords(afterIndentEndIdx, 1), 'rs');
         
-        angleChange
         maxAngleChangeAfterIndent = 40;
         if(abs(angleChange) < maxAngleChangeAfterIndent)
 %             plot(perimCoords(allIndentPtIdx, 2), perimCoords(allIndentPtIdx, 1), 'bd');

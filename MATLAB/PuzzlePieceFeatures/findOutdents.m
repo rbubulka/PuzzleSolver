@@ -82,54 +82,43 @@ function [outdentRegions] = findOutdents(singlePieceMask, perimCoords, curvedIdx
             finalInflPtIdx = potentialInflPtIdx;
         end
         
+        numOutdents = size(allOutdentPtIdx,1);
         minOutdentSizeThreshold = 2;
         % Not bounded by two inflection points or is too small, so not an outdent
         if(finalInflPtIdx == -1 | size(find(allOutdentEndingPts == finalInflPtIdx), 1) > 0 ...
-            | size(allOutdentPtIdx,1) <= minOutdentSizeThreshold)
+            | numOutdents <= minOutdentSizeThreshold)
             continue;
         end
         
-        % Eliminate any potential outdents whose perimeter changes direction
-        % immediately after the outdent relative to the perimeter before the
-        % outdent (eliminates regions near outdents)        
-        outdentStartX = perimCoords(firstOutdentPtIdx, 1);
-        outdentStartY = perimCoords(firstOutdentPtIdx, 2);
-
-        middleIdx = round(size(allOutdentPtIdx,1) / 2);
-        middleOutdentIdx = allOutdentPtIdx(middleIdx);
-        middleOutdentX = perimCoords(middleOutdentIdx, 1);
-        middleOutdentY = perimCoords(middleOutdentIdx, 2);
-        
-        outdentEndX = perimCoords(lastOutdentPtIdx, 1);
-        outdentEndY = perimCoords(lastOutdentPtIdx, 2);
-        
-        startVectorX = middleOutdentX - outdentStartX;
-        startVectorY = middleOutdentY - outdentStartY;
-        startVectorAngle = atan2(startVectorY, startVectorX);
-        
-        endVectorX = outdentEndX - middleOutdentX;
-        endVectorY = outdentEndY - middleOutdentY;
-        endVectorAngle = atan2(endVectorY, endVectorX);
-        
-        angleChange = radtodeg(endVectorAngle - startVectorAngle);
-        if(angleChange > 180)
-           angleChange = 360 - angleChange; 
-        elseif (angleChange < -180)
-           angleChange = 360 + angleChange;
+        % Eliminate any potential outdents that don't undergo frequent changes in direction
+        minAngleChange = 20;
+        noChangeCount = 0;
+        numOutdents
+        stepSize = 2;
+        angleChanges = [];
+        for i=1:stepSize:numOutdents
+            firstIdx = wrapIndex(allOutdentPtIdx(i) - 6, numPerimPts);
+            firstPt = perimCoords(firstIdx, :);
+            
+            middlePt = perimCoords(allOutdentPtIdx(i), :);
+            
+            lastIdx = wrapIndex(allOutdentPtIdx(i) + 6, numPerimPts);
+            lastPt = perimCoords(lastIdx, :);
+            
+            angleChange = computeChangeInVectorDirection(firstPt, middlePt, lastPt);
+            angleChanges = [angleChanges; angleChange];
+            if(abs(angleChange) < minAngleChange)
+                noChangeCount = noChangeCount + 1;
+            end
         end
         
-%         plot(perimCoords(beforeOutdentStartIdx, 2), perimCoords(beforeOutdentStartIdx, 1), 'ro');
-        plot(perimCoords(startInflPtIdx, 2), perimCoords(startInflPtIdx, 1), 'ro');
-         plot(middleOutdentY, middleOutdentX, 'rd');
-        plot(perimCoords(finalInflPtIdx, 2), perimCoords(finalInflPtIdx, 1), 'rs');
-%         plot(perimCoords(afterOutdentEndIdx, 2), perimCoords(afterOutdentEndIdx, 1), 'rs');
-        
-        angleChange
-        maxAngleChangeOverOutdent = 80;
-        minAngleChangeOverOutdent = 40;
-        if(abs(angleChange) > minAngleChangeOverOutdent & abs(angleChange) < maxAngleChangeOverOutdent)
+        if(noChangeCount < 3)
+            angleChanges
             plot(perimCoords(allOutdentPtIdx, 2), perimCoords(allOutdentPtIdx, 1), 'bd');
         end
+        
+        plot(perimCoords(startInflPtIdx, 2), perimCoords(startInflPtIdx, 1), 'ro');
+        plot(perimCoords(finalInflPtIdx, 2), perimCoords(finalInflPtIdx, 1), 'rs');
         
         idx = sub2ind(size(singlePieceMask), perimCoords(allOutdentPtIdx, 1), perimCoords(allOutdentPtIdx, 2));
         outdentRegions(idx) = j;
