@@ -1,4 +1,4 @@
-fileName = 'ImageRecProjectImages/randomPuzzlePiece.png';
+fileName = 'ImageRecProjectImages/otherTestPiece.png';
 [piecesLabeled, pieceCount] = processImage(fileName);
 
 for i = 1:max(max(piecesLabeled))
@@ -6,7 +6,8 @@ for i = 1:max(max(piecesLabeled))
         singlePieceMask = zeros(size(piecesLabeled,1),size(piecesLabeled,2));
         singlePieceMask(find(piecesLabeled == i)) = 1;
         
-        classifyPieceEdges(singlePieceMask);
+        rotatedPiece = handleRotation(singlePieceMask);
+        classifyPieceEdges(rotatedPiece);
     end
 end
     

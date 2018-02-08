@@ -1,34 +1,33 @@
 function [] = classifyPieceEdges(singlePieceMask)
-
-    covarM = computeCovarianceM(singlePieceMask);
-    [maxVec, maxVal] = eigs(covarM,1);
-    angle = radtodeg(atan2(maxVec(2),maxVec(1)));
+    wrapIndex = @(a, n) (mod(a-1, n) + 1);
     
-    rotatedPiece = imrotate(singlePieceMask, angle);
-
     % Find pixels along perimeter of piece
-    [r,c] = find(rotatedPiece == 1);
+    [r,c] = find(singlePieceMask == 1);
     minCol = min(c);
     minColIdx = min(find(c == minCol));
     startingPt = [r(minColIdx), c(minColIdx)];
-    perimCoords = bwtraceboundary(rotatedPiece, startingPt, 'E',8);
+    perimCoords = bwtraceboundary(singlePieceMask, startingPt, 'E',8);
     numPerimPts = size(perimCoords,1);
+    
+    % Find piece center
+    rowMean = mean(r);
+    colMean = mean(c);
+    pieceCenter = [round(rowMean), round(colMean)];
 
-    % Find way to define convex hull?
-    pieceConvexHull = bwconvhull(rotatedPiece);
-    [r,c] = find(rotatedPiece == 1);
+    % Define outside of convex hull
+    pieceConvexHull = bwconvhull(singlePieceMask);
+    [r,c] = find(singlePieceMask == 1);
     minCol = min(c);
     minColIdx = min(find(c == minCol));
     startingPt = [r(minColIdx), c(minColIdx)];
     convexHullPerim = bwtraceboundary(pieceConvexHull, startingPt, 'E',8);
     
     % Find points where perimeter is not straight
-    imtool(pieceConvexHull);
-    stepSize = 4;
-    wrapIndex = @(a, n) (mod(a-1, n) + 1);
+%     imtool(pieceConvexHull);
+    stepSize = 2;
     
-    curvature = zeros(1, numPerimPts);
-    distToConvexHull = zeros(1, numPerimPts);
+    curvature = zeros(numPerimPts, 1);
+    distToConvexHull = zeros(numPerimPts, 1);
     for j = 1:numPerimPts
         % Find whether current point is part of curve
         precedingIdx = wrapIndex(j-stepSize, numPerimPts);
@@ -52,6 +51,8 @@ function [] = classifyPieceEdges(singlePieceMask)
         angleChange = radtodeg(futureVectorAngle - prevVectorAngle);
         if(angleChange > 180)
            angleChange = 360 - angleChange; 
+        elseif (angleChange < -180)
+           angleChange = 360 + angleChange;
         end
         curvature(j) = angleChange;
         
@@ -65,12 +66,19 @@ function [] = classifyPieceEdges(singlePieceMask)
     farHullThresh = 3;
     farFromHullIdx = find(distToConvexHull > farHullThresh);
     
-    closeHullThresh = 1;
+    closeHullThresh = 1.5;
     closeToHullIdx = find(distToConvexHull < closeHullThresh);
-    imshow(rotatedPiece);
+    imshow(singlePieceMask);
     hold on;
-    plot(perimCoords(closeToHullIdx, 2), perimCoords(closeToHullIdx, 1), 'bd');
-    plot(perimCoords(curvedIdx, 2), perimCoords(curvedIdx, 1), 'ro');
-    plot(perimCoords(farFromHullIdx, 2), perimCoords(farFromHullIdx, 1), 'gs');
+    
+    indentRegions = findIndents(singlePieceMask, perimCoords, curvedIdx, farFromHullIdx);
+    outdentRegions = findOutdents(singlePieceMask, perimCoords, curvedIdx, closeToHullIdx);
+    idx = sub2ind(size(singlePieceMask), pieceCenter(1), pieceCenter(2));
+    indentRegions(idx) = 1;
+    
+%     plot(perimCoords(closeToHullIdx, 2), perimCoords(closeToHullIdx, 1), 'gs');
+    
+    
+    imtool(label2rgb(outdentRegions, @jet, 'k'));
 end
 
