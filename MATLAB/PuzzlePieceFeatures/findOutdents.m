@@ -9,6 +9,7 @@ function [outdentRegions] = findOutdents(singlePieceMask, perimCoords, curvedIdx
     allOutdentEndingPts = [];
     neighborDistance = 2;
     outdentRegions = zeros(size(singlePieceMask, 1), size(singlePieceMask, 2));
+    numOutdentsFound = 0;
     for j = 1:numInflPts
         % Speculatively search for a point that is close to convex hull in
         % next few points
@@ -85,15 +86,20 @@ function [outdentRegions] = findOutdents(singlePieceMask, perimCoords, curvedIdx
         numOutdents = size(allOutdentPtIdx,1);
         minOutdentSizeThreshold = 2;
         % Not bounded by two inflection points or is too small, so not an outdent
-        if(finalInflPtIdx == -1 | size(find(allOutdentEndingPts == finalInflPtIdx), 1) > 0 ...
-            | numOutdents <= minOutdentSizeThreshold)
+        if(finalInflPtIdx == -1 | numOutdents <= minOutdentSizeThreshold)
+            continue;
+        end
+        
+        % Ensure part of an old segment is not reconsidered unless this 
+        % one is better
+        [r, c] = find(allOutdentEndingPts == finalInflPtIdx);
+        if(size(r,1) > 0 & allOutdentEndingPts(r, 2) >= numOutdents)
             continue;
         end
         
         % Eliminate any potential outdents that don't undergo frequent changes in direction
         minAngleChange = 20;
         noChangeCount = 0;
-        numOutdents
         stepSize = 2;
         angleChanges = [];
         for i=1:stepSize:numOutdents
@@ -113,15 +119,15 @@ function [outdentRegions] = findOutdents(singlePieceMask, perimCoords, curvedIdx
         end
         
         if(noChangeCount < 3)
-            angleChanges
+            plot(perimCoords(startInflPtIdx, 2), perimCoords(startInflPtIdx, 1), 'ro');
+            plot(perimCoords(finalInflPtIdx, 2), perimCoords(finalInflPtIdx, 1), 'rs');
             plot(perimCoords(allOutdentPtIdx, 2), perimCoords(allOutdentPtIdx, 1), 'bd');
+            
+            allOutdentEndingPts = [allOutdentEndingPts; finalInflPtIdx, numOutdents];
+            idx = sub2ind(size(singlePieceMask), perimCoords(allOutdentPtIdx, 1), perimCoords(allOutdentPtIdx, 2));
+            numOutdentsFound = numOutdentsFound + 1;
+            outdentRegions(idx) = numOutdentsFound;
         end
-        
-        plot(perimCoords(startInflPtIdx, 2), perimCoords(startInflPtIdx, 1), 'ro');
-        plot(perimCoords(finalInflPtIdx, 2), perimCoords(finalInflPtIdx, 1), 'rs');
-        
-        idx = sub2ind(size(singlePieceMask), perimCoords(allOutdentPtIdx, 1), perimCoords(allOutdentPtIdx, 2));
-        outdentRegions(idx) = j;
     end
 end
 

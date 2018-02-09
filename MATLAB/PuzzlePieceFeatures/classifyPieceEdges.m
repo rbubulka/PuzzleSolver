@@ -56,12 +56,71 @@ function [] = classifyPieceEdges(singlePieceMask)
     
     indentRegions = findIndents(singlePieceMask, perimCoords, curvedIdx, farFromHullIdx);
     outdentRegions = findOutdents(singlePieceMask, perimCoords, curvedIdx, closeToHullIdx);
-    idx = sub2ind(size(singlePieceMask), pieceCenter(1), pieceCenter(2));
-    indentRegions(idx) = 1;
     
-%     plot(perimCoords(closeToHullIdx, 2), perimCoords(closeToHullIdx, 1), 'gs');
+    % Grab center of each indent
+    numIndents = max(max(indentRegions))
+    indentCenters = zeros(numIndents, 2);
+    for i=1:numIndents
+        [rows, cols] = find(indentRegions == i);
+        rowMean = mean(rows);
+        colMean = mean(cols);
+        currCenter = [rowMean, colMean];
+        indentCenters(i,:) = currCenter;
+    end 
+    indentCenters
     
-    
-%     imtool(label2rgb(outdentRegions, @jet, 'k'));
+    % Grab center of each outdent
+    numOutdents = max(max(outdentRegions))
+    outdentCenters = zeros(numOutdents, 2);
+    for i=1:numOutdents
+        [rows, cols] = find(outdentRegions == i);
+        rowMean = mean(rows);
+        colMean = mean(cols);
+        currCenter = [rowMean, colMean];
+        outdentCenters(i,:) = currCenter;
+        
+        sameCoordinateThreshold = 8;
+        % Check if there is a nearby center for indents
+        xAndYDifferences = indentCenters - currCenter;
+        [sameXCoordinateRow, c] = find(abs(xAndYDifferences(:,1)) < sameCoordinateThreshold);
+        
+        % If multiple points on same line, determine which point is closer
+        % to piece's center --> likely the actual indent/outdent
+        if(size(sameXCoordinateRow, 1) > 0)
+            indentX = indentCenters(sameXCoordinateRow, 1);
+            indentY = indentCenters(sameXCoordinateRow, 2);
+            indentToCenter = sqrt((indentX - pieceCenter(1)) .^2 + (indentY - pieceCenter(2)) .^2);
+            outdentToCenter = sqrt((currCenter(1) - pieceCenter(1)) .^2 + (currCenter(2) - pieceCenter(2)) .^2);
+
+            if(indentToCenter < outdentToCenter)
+                outdentCenters(i,:) = -1;
+                outdentRegions(find(outdentRegions == i)) = 0;
+            else
+                indentToCenter(sameXCoordinate, :) = -1;
+                indentRegions(find(indentRegions == sameXCoordinate)) = 0;
+            end
+        end
+            
+        [sameYCoordinateRow, c] = find(abs(xAndYDifferences(:,2)) < sameCoordinateThreshold);
+        % If multiple points on same line, determine which point is closer
+        % to piece's center --> likely the actual indent/outdent
+        if(size(sameYCoordinateRow, 1) > 0)
+            indentX = indentCenters(sameYCoordinateRow, 1);
+            indentY = indentCenters(sameYCoordinateRow, 2);
+            indentToCenter = sqrt((indentX - pieceCenter(1)) .^2 + (indentY - pieceCenter(2)) .^2);
+            outdentToCenter = sqrt((currCenter(1) - pieceCenter(1)) .^2 + (currCenter(2) - pieceCenter(2)) .^2);
+
+            if(indentToCenter < outdentToCenter)
+                outdentCenters(i,:) = -1;
+                outdentRegions(find(outdentRegions == i)) = 0;
+            else
+                indentToCenter(sameXCoordinate, :) = -1;
+                indentRegions(find(indentRegions == sameYCoordinate)) = 0;
+            end
+        end
+    end
+ 
+    imtool(label2rgb(indentRegions, @jet, 'k'));
+    imtool(label2rgb(outdentRegions, @jet, 'k'));
 end
 

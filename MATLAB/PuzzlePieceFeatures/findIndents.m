@@ -9,6 +9,7 @@ function [indentRegions] = findIndents(singlePieceMask, perimCoords, curvedIdx, 
     allIndentEndingPts = [];
     neighborDistance = 4;
     indentRegions = zeros(size(singlePieceMask, 1), size(singlePieceMask, 2));
+    numIndentsFound = 0;
     for j = 1:numInflPts
         % Speculatively search for a point that is far from convex hull in
         % next few points
@@ -65,17 +66,24 @@ function [indentRegions] = findIndents(singlePieceMask, perimCoords, curvedIdx, 
             finalInflPtIdx = potentialInflPtIdx;
         end
        
+        numIndents = size(allIndentPtIdx, 1);
         minIndentSizeThreshold = 2;
         % Not bounded by two inflection points or is too small, so not an indent
-        if(finalInflPtIdx == -1 | size(find(allIndentEndingPts == finalInflPtIdx), 1) > 0 ...
-            | size(allIndentPtIdx,1) <= minIndentSizeThreshold)
+        if(finalInflPtIdx == -1 | numIndents <= minIndentSizeThreshold)
+            continue;
+        end
+        
+        % Ensure part of an old segment is not reconsidered unless this 
+        % one is better
+        [r, c] = find(allIndentEndingPts == finalInflPtIdx);
+        if(size(r,1) > 0 & allIndentEndingPts(r, 2) >= numIndents)
             continue;
         end
         
         
         % Store ending point to avoid duplicate work with sub-segments of
         % current indent
-        allIndentEndingPts = [allIndentEndingPts; finalInflPtIdx];
+        allIndentEndingPts = [allIndentEndingPts; finalInflPtIdx, numIndents];
         
         % Eliminate any potential indents whose perimeter changes direction
         % immediately after the indent relative to the perimeter before the
@@ -100,10 +108,13 @@ function [indentRegions] = findIndents(singlePieceMask, perimCoords, curvedIdx, 
         maxAngleChangeAfterIndent = 40;
         if(abs(angleChange) < maxAngleChangeAfterIndent)
 %             plot(perimCoords(allIndentPtIdx, 2), perimCoords(allIndentPtIdx, 1), 'bd');
+            idx = sub2ind(size(singlePieceMask), perimCoords(allIndentPtIdx, 1), perimCoords(allIndentPtIdx, 2));
+            
+            numIndentsFound = numIndentsFound + 1;
+            indentRegions(idx) = numIndentsFound;
         end
         
-        idx = sub2ind(size(singlePieceMask), perimCoords(allIndentPtIdx, 1), perimCoords(allIndentPtIdx, 2));
-        indentRegions(idx) = j;
+        
     end
 end
 
