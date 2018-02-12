@@ -1,6 +1,6 @@
-function[] = returnPieceComparison(p1,p2)
-    box1 = regionprops(p1,'BoundingBox');
-    box2 = regionprops(p2,'BoundingBox');
+function[] = returnPieceComparison(outdentPiece,indentPiece)
+    box1 = regionprops(outdentPiece,'BoundingBox');
+    box2 = regionprops(indentPiece,'BoundingBox');
     b1w = box1.BoundingBox(3);
     b1h = box1.BoundingBox(4);
     b2w = box2.BoundingBox(3);
@@ -12,7 +12,7 @@ function[] = returnPieceComparison(p1,p2)
     for i=1:b2w
         for j=1:b2h
             col = uint8(i+dw);
-            computespace(j,col)=p2(j+box2.BoundingBox(2)-.5,i+box2.BoundingBox(1)-.5);
+            computespace(j,col)=indentPiece(j+box2.BoundingBox(2)-.5,i+box2.BoundingBox(1)-.5);
         end 
     end 
     computespace = flip(computespace,1);
@@ -20,11 +20,11 @@ function[] = returnPieceComparison(p1,p2)
     imtool(computespace)
     for i=1:b1w
         for j=1:b1h
-            computespace(j,i)=computespace(j,i)-p1(j+box1.BoundingBox(2)-.5,i+box1.BoundingBox(1)-.5);
+            computespace(j,i)=computespace(j,i)-outdentPiece(j+box1.BoundingBox(2)-.5,i+box1.BoundingBox(1)-.5);
         end 
     end 
+   computespace(find(computespace <= 0))=0;
    imtool(computespace);
-   computespace(find(computespace ~= 0))=1;
-   imtool(computespace);
+   immse(computespace,flip(computespace,1))
     
 end
