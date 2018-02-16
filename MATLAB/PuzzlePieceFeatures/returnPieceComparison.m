@@ -1,30 +1,79 @@
-function[] = returnPieceComparison(outdentPiece,indentPiece)
-    box1 = regionprops(outdentPiece,'BoundingBox');
-    box2 = regionprops(indentPiece,'BoundingBox');
-    b1w = box1.BoundingBox(3);
-    b1h = box1.BoundingBox(4);
-    b2w = box2.BoundingBox(3);
-    b2h = box2.BoundingBox(4);
-    dh=int8((b1h-b2h)/2);
-    dw=floor((b1w-b2w)/2);
+function[] = returnPieceComparison(outdentPiece,indentPiece,dir)
+%D\direction= 1=up 2=left 3=down 4=right, which edge of the outdent piece we are matchign along.  
+    outdentBox = regionprops(outdentPiece,'BoundingBox');
+    indentBox = regionprops(indentPiece,'BoundingBox');
+    b1w = outdentBox.BoundingBox(3);
+    b1h = outdentBox.BoundingBox(4);
+    b2w = indentBox.BoundingBox(3);
+    b2h = indentBox.BoundingBox(4);
+    row=0;
+    col=0;
+    dh=abs(floor((b1h-b2h)/2));
+    dw=abs(floor((b1w-b2w)/2));
     computespace = zeros(max(b1h,b2h),max(b1w,b2w));
+    computespace1 = zeros(max(b1h,b2h),max(b1w,b2w));
     size(computespace)
-    for i=1:b2w
-        for j=1:b2h
-            col = uint8(i+dw);
-            computespace(j,col)=indentPiece(j+box2.BoundingBox(2)-.5,i+box2.BoundingBox(1)-.5);
-        end 
-    end 
-    computespace = flip(computespace,1);
-    computespace = flip(computespace,2);
-    imtool(computespace)
     for i=1:b1w
+        if b1w < b2w
+            col = i+dw;
+        else
+            col = i;
+        end
+        
         for j=1:b1h
-            computespace(j,i)=computespace(j,i)-outdentPiece(j+box1.BoundingBox(2)-.5,i+box1.BoundingBox(1)-.5);
+            if b1h < b2h
+                row = j+dh;
+            else
+                row = j;
+            end
+            computespace(row,col)=outdentPiece(j+outdentBox.BoundingBox(2)-.5,i+outdentBox.BoundingBox(1)-.5);
         end 
     end 
-   computespace(find(computespace <= 0))=0;
+    imtool(computespace)
+    for i=1:b2w
+        if b1w > b2w
+            col = i+dw;
+        else
+            col = i;
+        end
+        for j=1:b2h
+            if b1h > b2h
+                row = j+dh;
+            else 
+                row = j;
+            end
+            val=indentPiece(j-1+indentBox.BoundingBox(2)-.5,i+indentBox.BoundingBox(1)-.5);
+            computespace1(row,col)=val;
+        end 
+    end 
+    if dir == 1 || dir == 3
+        computespace1 = flip(computespace1);
+    else 
+        computespace1 = flip(computespace1,2);
+    end
+    computespace=computespace-computespace1;
+    computespace(find(computespace <= 0))=0;
    imtool(computespace);
-   immse(computespace,flip(computespace,1))
-    
+   if dir == 1 %match along upper edge of the outdent piece
+       for i=floor(size(computespace,1)/2):size(computespace,1)
+       computespace(i,:)=0;
+       end 
+   elseif dir == 2 %match along left dege of outdent
+       for i=floor(size(computespace,2)/2):size(computespace,2)
+       computespace(:,i)=0;
+       end
+   elseif dir == 3 %bottom edge
+         for i=1:floor(size(computespace,1)/2)
+            computespace(i,:)=0;
+         end
+   else %right edfe
+       for i=1:floor(size(computespace,2)/2)
+       computespace(:,i)=0;
+        end
+   end
+   
+   imtool(computespace);
+   computespace =double(bwareafilt(imbinarize(computespace),1));
+   imtool(computespace);
+   immse(computespace,flip(flip(computespace,1),2))
 end
