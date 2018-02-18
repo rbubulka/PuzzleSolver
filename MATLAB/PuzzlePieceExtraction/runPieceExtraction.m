@@ -1,1 +1,1 @@
-processDirectory('ImageRecProjectImages')
+processDirectory('ImageRecProjectImages/HorseRace')

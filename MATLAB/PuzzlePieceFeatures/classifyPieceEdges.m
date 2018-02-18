@@ -51,14 +51,16 @@ function [] = classifyPieceEdges(singlePieceMask)
     
     closeHullThresh = 1.5;
     closeToHullIdx = find(distToConvexHull < closeHullThresh);
-    imshow(singlePieceMask);
-    hold on;
+    
+%     imshow(singlePieceMask);
+%     hold on;
+    
     
     indentRegions = findIndents(singlePieceMask, perimCoords, curvedIdx, farFromHullIdx);
     outdentRegions = findOutdents(singlePieceMask, perimCoords, curvedIdx, closeToHullIdx);
-    
+
     % Grab center of each indent
-    numIndents = max(max(indentRegions))
+    numIndents = max(max(indentRegions));
     indentCenters = zeros(numIndents, 2);
     for i=1:numIndents
         [rows, cols] = find(indentRegions == i);
@@ -67,10 +69,9 @@ function [] = classifyPieceEdges(singlePieceMask)
         currCenter = [rowMean, colMean];
         indentCenters(i,:) = currCenter;
     end 
-    indentCenters
     
     % Grab center of each outdent
-    numOutdents = max(max(outdentRegions))
+    numOutdents = max(max(outdentRegions));
     outdentCenters = zeros(numOutdents, 2);
     for i=1:numOutdents
         [rows, cols] = find(outdentRegions == i);
@@ -79,7 +80,7 @@ function [] = classifyPieceEdges(singlePieceMask)
         currCenter = [rowMean, colMean];
         outdentCenters(i,:) = currCenter;
         
-        sameCoordinateThreshold = 8;
+        sameCoordinateThreshold = 4;
         % Check if there is a nearby center for indents
         xAndYDifferences = indentCenters - currCenter;
         [sameXCoordinateRow, c] = find(abs(xAndYDifferences(:,1)) < sameCoordinateThreshold);
@@ -120,7 +121,36 @@ function [] = classifyPieceEdges(singlePieceMask)
         end
     end
  
-    imtool(label2rgb(indentRegions, @jet, 'k'));
-    imtool(label2rgb(outdentRegions, @jet, 'k'));
+    numIndents = size(unique(indentRegions),1) - 1;
+    displayIndentRegions = indentRegions;
+    nonIndentIdx = find(indentRegions == 0 & singlePieceMask == 1);
+    firstColorIdx = find(indentRegions == 1);
+    displayIndentRegions(nonIndentIdx) = 1;
+    displayIndentRegions(firstColorIdx) = numIndents+1;
+    displayIndentRegions = label2rgb(displayIndentRegions, @jet, 'k');
+    
+    numOutdents = size(unique(outdentRegions),1) - 1;    
+    displayOutdentRegions = outdentRegions;
+    nonOutdentIdx = find(outdentRegions == 0 & singlePieceMask == 1);
+    firstColorIdx = find(outdentRegions == 1);
+    displayOutdentRegions(nonOutdentIdx) = 1;
+    displayOutdentRegions(firstColorIdx) = numOutdents+1;
+    displayOutdentRegions = label2rgb(displayOutdentRegions, @jet, 'k');
+    
+    figure(1);
+    subplot(1,3,1);
+    imshow(singlePieceMask);
+    title('Original Piece');
+    
+    subplot(1,3,2);
+    imshow(displayIndentRegions);
+    indentTitle = sprintf("Detected %d Indents", numIndents);
+    title(indentTitle);
+
+    subplot(1,3,3);
+    imshow(displayOutdentRegions);
+    outdentTitle = sprintf("Detected %d Outdents", numOutdents);
+    title(outdentTitle);
+
 end
 
