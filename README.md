@@ -14,7 +14,7 @@ No 'masochistic' puzzles - puzzles that are arbitrarily hard for the sake of bei
 Puzzle pieces need to start in their correct orientation - Might change this later
 
 ## Milestones
-  0. **Extract Puzzle Pieces from an Image.**  
+  0. Extract Puzzle Pieces from an Image.
       - We need a way to separate puzzle pieces from their background.
   1. Isolate "border" Puzzle Pieces. 
       - Border pieces are inherently unique as they have at least one flat edge. Once these pieces are isolated, they can be combined to solve the perimeter.
@@ -30,21 +30,15 @@ Puzzle pieces need to start in their correct orientation - Might change this lat
       - This will involve taking into account potentially, noise, camera angle, tilted pieces.
   7. Extend Functionality to Recognize Partially Solved Puzzles
       - Now that a puzzle can be solved, we need to recognize and handle one that is partially completed. This is saved for last, because it will require a complete overhaul of most of the edge detection and connection validation logic.
-      
-## Execution of Project      
-      
+            
 ## Documentation
  - [Process Notes](https://docs.google.com/document/d/1dFlcskbwAm6e1XdTNDeyerxvmVqD_4IM4_7pSn7M_Hk/edit?usp=sharing)
     - Used for jotting down notes about things that were tried, how they worked/didn't work, and keeping track of the process
- - [Final Report](Documentation/LaTeX/Template.pdf) (Incomplete)
+    - Better detail provided in final report
+ - [Final Report](https://www.sharelatex.com/project/5a6ce734c8f93e64f7fbecd0) (Incomplete)
  
 ## Relevant Research Papers
  - [Using Computer Vision to Solve Jigsaw Puzzles](https://web.stanford.edu/class/cs231a/prev_projects_2016/computer-vision-solve__1_.pdf)
  - [Apictorial Jigsaw Puzzles: The Computer Solution of a Problem in Pattern Recognition](http://ieeexplore.ieee.org/document/4038109/)
  - [A global approach to automatic solution of jigsaw puzzles](https://www.sciencedirect.com/science/article/pii/S0925772104000239)
  - [Solving jigsaw puzzles by computer](https://www.researchgate.net/publication/225796422_Solving_jigsaw_puzzles_by_computer)
-
- 
-## Images Used
-
-     
